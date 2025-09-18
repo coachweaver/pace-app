@@ -1,22 +1,26 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Swim Pace Calculator</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Race Pace Calculator</title>
+
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#00205b" />
+
 <style>
   :root{
     --white:#ffffff;
     --off:#fafafa;
     --ink:#00205b;
     --muted:#415a8a;
-    --gold:#e9dd90;
+    --gold:#e9dd90;     /* final 50 */
     --sky:#8dc8e8;
     --border:#e6e6e6;
     --danger:#b00020;
-    --light-green:#e8f5e9;   /* very light green for First 50 */
-    --light-yellow:#fffbe6;  /* very light yellow for Middle 50s */
+    --light-green:#e8f5e9;   /* first 50 */
+    --light-yellow:#fffbe6;  /* middle 50s */
   }
   *,*::before,*::after{ box-sizing:border-box }
   html,body{ height:100% }
@@ -26,8 +30,9 @@
     background: var(--white);
     color: var(--ink);
     min-height: 100dvh;
-    display:flex; align-items:center; justify-content:center;
-    padding:20px;
+    padding: clamp(12px, 3vw, 24px);
+    padding-top: calc(max(12px, env(safe-area-inset-top)));
+    display:flex; align-items:flex-start; justify-content:center;
   }
   .card{
     width:min(900px, 96vw);
@@ -37,84 +42,163 @@
     box-shadow: 0 16px 40px rgba(0,0,0,.06);
     padding:22px;
   }
+
+  /* Badge */
   .logo{
     display:block;
-    margin:0 auto 10px auto;
-    width:min(140px, 40%);
+    margin: max(6px, env(safe-area-inset-top)) auto 10px auto;
+    width:min(140px, 42vw);
     height:auto;
   }
-  h1{ margin:6px 0 12px 0; text-align:center; font-size:clamp(20px,4.5vw,28px) }
 
-  /* Layout */
-  .row{ display:grid; grid-template-columns:1fr; gap:12px; margin:10px 0 16px }
-  @media (min-width:760px){
-    .row.inputs{ grid-template-columns: 1fr 1fr }
-    .row.controls{ grid-template-columns: 1fr 1fr 1fr }
+  h1{
+    margin:6px 0 12px 0;
+    text-align:center;
+    font-size:clamp(20px,4.5vw,28px);
   }
 
-  .field label{ display:block; font-size:14px; color:var(--muted); margin:0 0 6px 2px }
+  /* Controls layout */
+  .controls{
+    display:grid;
+    gap:12px;
+    margin:10px 0 16px;
+  }
 
-  /* Emphasized Goal box */
+  /* Centered, fixed-width Event on desktop */
+  .eventWrap{
+    width: min(320px, 92vw);
+    margin: 0 auto;           /* centers it */
+  }
+
+  /* Course shows only for 400/500; also centered but narrower */
+  .courseWrap{
+    width: min(220px, 92vw);
+    margin: 0 auto;
+  }
+
+  .field label{
+    display:block;
+    font-size:14px;
+    color:var(--muted);
+    margin:0 0 6px 2px;
+    text-align:center;
+  }
+
+  select{
+    width:100%;
+    padding:12px 14px;
+    border-radius:12px;
+    border:1px solid var(--border);
+    background:#fff; color:var(--ink);
+    font-size:16px;
+  }
+
+  /* Emphasized Goal box — centerpiece */
   .goal-wrap{
-    grid-column: 1 / -1;
     background: var(--off);
     border:1px solid var(--border);
     border-radius:16px;
     padding:16px;
     box-shadow: 0 8px 24px rgba(0,0,0,.06);
+    width: min(560px, 96vw);
+    margin: 6px auto 12px auto;   /* centered */
   }
-  .goal-wrap label{ font-size:15px }
+  .goal-wrap label{
+    font-size:15px;
+    text-align:center;
+  }
   #goal{
     width:100%;
-    padding:16px 18px;
+    padding:18px 20px;
     border-radius:12px;
     border:2px solid var(--ink);
     background:#fff; color:var(--ink);
-    font-size:22px; font-weight:800; text-align:center;
+    font-size:24px;
+    font-weight:800;
+    text-align:center;
   }
 
-  select,input,button{
-    width:100%; padding:12px 14px; border-radius:12px;
-    border:1px solid var(--border); background:#fff; color:var(--ink);
-    font-size:16px;
-  }
-  button{
-    background: linear-gradient(180deg, var(--sky), #5aa6c7);
-    color:#062a4f; font-weight:700; cursor:pointer;
-    box-shadow: 0 6px 16px rgba(141,200,232,.35);
+  .error{
+    color:var(--danger);
+    font-size:14px;
+    min-height:20px;
+    text-align:center;
+    margin-top:4px;
   }
 
-  .error{ color:var(--danger); font-size:14px; min-height:20px; text-align:center; }
+  /* Results */
+  .results{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:10px;
+    margin-top:10px;
+  }
+  @media (min-width:700px){
+    .results.three{ grid-template-columns:repeat(3,1fr) }
+  }
 
-  .results{ display:grid; grid-template-columns:1fr; gap:10px; margin-top:6px }
-  @media (min-width:680px){ .results{ grid-template-columns:repeat(3,1fr) } }
+  /* When only two pills (100 events), center them as a group */
+  .results.two{
+    display:flex;
+    justify-content:center;
+    gap:12px;
+    flex-wrap:wrap;
+  }
 
   .pill{
     border:1px solid var(--border);
-    border-radius:16px; padding:12px; text-align:center;
+    border-radius:16px;
+    padding:12px;
+    text-align:center;
+    min-width: 180px;
+    background: var(--off);
   }
-  .pill .tag{ font-size:12px; color:var(--muted); margin-bottom:4px }
-  .pill .num{ font-variant-numeric: tabular-nums; font-size:clamp(22px,5vw,30px); font-weight:800 }
+  .pill .tag{
+    font-size:12px; color:var(--muted); margin-bottom:4px;
+  }
+  .pill .num{
+    font-variant-numeric: tabular-nums;
+    font-size:clamp(22px,5vw,30px);
+    font-weight:800;
+  }
 
   /* Pill backgrounds */
   #pillFirst{ background: var(--light-green) }
   #pillMiddle{ background: var(--light-yellow) }
   #pillLast{ background: var(--gold) }
 
-  .strategy{ margin-top:14px; color:var(--danger); text-align:center; font-size:15px; background:var(--off); border:1px solid var(--border); border-radius:12px; padding:10px }
-  .help{ margin-top:12px; color:var(--muted); font-size:14px; text-align:center }
+  /* Strategy — make sure it's visible on iPhone */
+  .strategy{
+    margin-top:16px;
+    color: var(--danger);
+    text-align:center;
+    font-size:16px;
+    font-weight:800;
+    background: #fff1f1;
+    border:1px solid #ffd0d0;
+    border-radius:12px;
+    padding:12px 14px;
+  }
+
+  .help{
+    margin-top:14px;
+    color:var(--muted);
+    font-size:14px;
+    text-align:center;
+  }
+
 </style>
 </head>
 <body>
   <main class="card" role="main" aria-labelledby="title">
-    <!-- Top centered image -->
+    <!-- Top centered image (safe with iPhone notch) -->
     <img class="logo" src="https://github.com/coachweaver/pace-app/blob/main/Badge%20Color%20(1).png?raw=true" alt="Team Badge" />
 
-    <h1 id="title">Swim Pace Calculator</h1>
+    <h1 id="title">Race Pace Calculator</h1>
 
-    <!-- Controls -->
-    <div class="row controls">
-      <div class="field">
+    <!-- Event (centered, fixed width) -->
+    <div class="controls">
+      <div class="field eventWrap">
         <label for="event">Event</label>
         <select id="event" aria-label="Event">
           <option>100 FR</option>
@@ -126,7 +210,8 @@
         </select>
       </div>
 
-      <div class="field" id="courseWrap" hidden>
+      <!-- Course shows only when 400/500 FR is selected -->
+      <div class="field courseWrap" id="courseWrap" hidden>
         <label for="course">Course</label>
         <select id="course" aria-label="Course">
           <option>SCM</option>
@@ -134,17 +219,12 @@
         </select>
       </div>
 
-      <div class="field">
-        <label>&nbsp;</label>
-        <button id="calc" type="button">Calculate</button>
-      </div>
-    </div>
-
-    <!-- Emphasized Goal Input -->
-    <div class="row inputs">
+      <!-- Emphasized Goal Input (centerpiece) -->
       <div class="field goal-wrap">
         <label for="goal">Goal time</label>
-        <input id="goal" type="text" inputmode="numeric" placeholder="m:ss or mm:ss or seconds only (≥ 44)" aria-describedby="err" />
+        <input id="goal" type="text" inputmode="numeric"
+               placeholder="m:ss or mm:ss or ss"
+               aria-describedby="err" />
       </div>
     </div>
 
@@ -152,7 +232,7 @@
 
     <!-- Results -->
     <section aria-live="polite" aria-atomic="true">
-      <div id="results" class="results" hidden>
+      <div id="results" class="results three" hidden>
         <div class="pill" id="pillFirst">
           <div class="tag">First 50</div>
           <div class="num" id="firstNum">00 s</div>
@@ -167,11 +247,12 @@
         </div>
       </div>
 
+      <!-- Strategy (red, bold, easy to see on iPhone) -->
       <div id="strategy" class="strategy" hidden></div>
 
+      <!-- Single-line description at the very bottom -->
       <div class="help">
-        Time formats accepted: <strong>m:ss</strong>, <strong>mm:ss</strong>, or <strong>seconds only</strong> with digits only and at least 44 seconds.  
-        Outputs are rounded to whole seconds. For 400/500 FR, Course appears: <strong>SCM = 400 m</strong>, <strong>SCY = 500 y</strong>.
+        Time formats accepted: <strong>m:ss</strong>, <strong>mm:ss</strong>, or <strong>seconds only</strong>
       </div>
     </section>
   </main>
@@ -181,7 +262,6 @@
   const courseSel = document.getElementById('course');
   const courseWrap = document.getElementById('courseWrap');
   const goal = document.getElementById('goal');
-  const calcBtn = document.getElementById('calc');
   const err = document.getElementById('err');
   const results = document.getElementById('results');
   const pillMiddle = document.getElementById('pillMiddle');
@@ -197,16 +277,16 @@
     "It's important to breathe. Just make sure you kick faster and breathe quick when you do!"
   ];
 
-  // Pacing rules (your latest specs)
-  // 100s: two splits; first is X seconds faster than last (Δfirst = gap, Δlast = 0)
-  // 200 FR: Δfirst = 3, Δlast = 0 (same for men/women; no category selector)
-  // 400/500 FR: Δfirst = 3, Δlast = 1; N depends on course (SCM=8, SCY=10)
+  // Pacing rules
+  // 100s: two splits; first is X seconds faster than last (gap). Implemented as dFirst=gap, dLast=0.
+  // 200 FR: Δ(First→Middle) = +3, Δ(Middle→Last) = 0
+  // 400/500 FR: Δ(First→Middle) = +3, Δ(Middle→Last) = 1; N by course (SCM=8, SCY=10)
   const RULES = {
-    "100 FR":   { N: 2, deltas: { first: 3.0, last: 0.0 } },
-    "100 BK":   { N: 2, deltas: { first: 3.0, last: 0.0 } },
-    "100 FLY":  { N: 2, deltas: { first: 3.0, last: 0.0 } },
-    "100 BR":   { N: 2, deltas: { first: 4.5, last: 0.0 } },
-    "200 FR":   { N: 4, deltas: { first: 3.0, last: 0.0 } },
+    "100 FR":     { N: 2, deltas: { first: 3.0, last: 0.0 } },
+    "100 BK":     { N: 2, deltas: { first: 3.0, last: 0.0 } },
+    "100 FLY":    { N: 2, deltas: { first: 3.0, last: 0.0 } },
+    "100 BR":     { N: 2, deltas: { first: 4.5, last: 0.0 } },
+    "200 FR":     { N: 4, deltas: { first: 3.0, last: 0.0 } },
     "400/500 FR": { NByCourse: { SCM: 8, SCY: 10 }, deltas: { first: 3.0, last: 1.0 } }
   };
 
@@ -216,10 +296,17 @@
     courseWrap.hidden = !isLong;
   }
 
-  function showHideMiddlePill(){
-    // 100s have only First and Last
+  function setResultsLayout(){
     const isHundred = eventSel.value.startsWith('100 ');
-    pillMiddle.style.display = isHundred ? 'none' : '';
+    if (isHundred){
+      pillMiddle.style.display = 'none';
+      results.classList.remove('three');
+      results.classList.add('two');   // center two pills
+    }else{
+      pillMiddle.style.display = '';
+      results.classList.remove('two');
+      results.classList.add('three');
+    }
   }
 
   function parseTimeFlexible(str){
@@ -228,8 +315,8 @@
     // Digits-only seconds (no ":" or ".")
     if (/^\d+$/.test(str)) {
       const sec = Number(str);
-      if (sec < 44) return null;        // must be >= 44 seconds
-      if (sec > 480) return null;       // cap at 8:00
+      if (sec < 44) return null;   // must be >= 44 seconds
+      if (sec > 480) return null;  // cap at 8:00
       return sec;
     }
 
@@ -261,17 +348,18 @@
 
   function calculate(){
     err.textContent = '';
+
     const total = parseTimeFlexible(goal.value.trim());
     if (total == null){
       results.hidden = true;
       strategyBox.hidden = true;
-      err.textContent = 'Enter a valid time: m:ss, mm:ss, or seconds only (digits) between 44 and 480.';
+      err.textContent = 'Enter m:ss, mm:ss, or seconds (44–480).';
       return;
     }
 
     const { first: dFirst, last: dLast, N } = pickDeltas();
 
-    // Solve middle pace for N 50s:
+    // Solve middle pace:
     // total = N*middle - (dFirst + dLast)  => middle = (total + dFirst + dLast)/N
     const middle = (total + dFirst + dLast) / N;
     const first = middle - dFirst;
@@ -285,26 +373,24 @@
     middleNum.textContent = formatWhole(middleR) + ' s';
     lastNum.textContent   = formatWhole(lastR) + ' s';
 
-    showHideMiddlePill();
+    setResultsLayout();
     results.hidden = false;
 
-    // Random strategy
+    // Strategy (strong + visible)
     strategyBox.textContent = STRATEGIES[Math.floor(Math.random()*STRATEGIES.length)];
     strategyBox.hidden = false;
   }
 
-  // Wire up events (auto-recalc + Enter key)
+  // Auto-recalc and Enter key support
   [eventSel, courseSel, goal].forEach(el => {
     el.addEventListener('change', () => { toggleCourse(); calculate(); });
     el.addEventListener('input', () => { calculate(); });
     el.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); calculate(); } });
   });
-  calcBtn.addEventListener('click', calculate);
 
   // Init
   toggleCourse();
-  showHideMiddlePill();
+  setResultsLayout();
 </script>
 </body>
 </html>
-```
