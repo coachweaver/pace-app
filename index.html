@@ -1,1 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<title>400 Free SCM Pace Calculator</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%2300205b'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-size='36' fill='white' font-family='Arial, sans-serif'%3E400%3C/text%3E%3C/svg%3E" />
+<style>
+  :root{
+    --white:#ffffff;
+    --off:#fafafa;
+    --ink:#00205b;
+    --muted:#415a8a;
+    --gold:#e9dd90;
+    --sky:#8dc8e8;
+    --border:#e6e6e6;
+    --danger:#b00020;
+  }
+  *,*::before,*::after{ box-sizing:border-box }
+  html,body{ height:100% }
+  body{
+    margin:0;
+    font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background: var(--white);
+    color: var(--ink);
+    min-height: 100dvh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+  .card{
+    width:min(820px, 96vw);
+    background: linear-gradient(180deg, rgba(0,32,91,.02), rgba(0,32,91,.00));
+    border:1px solid var(--border);
+    border-radius:20px;
+    box-shadow: 0 16px 40px rgba(0,0,0,.06);
+    padding:28px;
+  }
+  h1{
+    margin:0 0 6px 0;
+    font-size:clamp(22px, 4.5vw, 30px);
+    letter-spacing:.2px;
+  }
+  p.lead{
+    margin:0 0 16px 0;
+    color:var(--muted);
+    font-size:clamp(14px, 3.2vw, 16px);
+  }
 
+  /* State cuts as clickable chips */
+  .statecuts{
+    display:flex; flex-wrap:wrap; gap:8px; margin:8px 0 18px 0;
+  }
+  .chip{
+    padding:10px 12px;
+    border-radius:999px;
+    border:1px solid var(--border);
+    background: var(--off);
+    font-size:13px;
+    cursor:pointer;
+    user-select:none;
+    transition: box-shadow .2s ease, transform .02s ease, background .2s ease;
+  }
+  .chip:hover{ box-shadow:0 6px 16px rgba(0,0,0,.08) }
+  .chip:active{ transform: translateY(1px) }
+  .chip[data-time="4:55"]{ background: rgba(141,200,232,.20) }
+  .chip[data-time="5:13"]{ background: rgba(233,221,144,.25) }
+
+  .row{
+    display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; margin:8px 0 18px 0;
+  }
+  .field{ flex:1 1 360px }
+  label{
+    display:block; margin:0 0 8px 2px; font-size:14px; color:var(--muted);
+  }
+  input[type="text"]{
+    width:100%;
+    font-size:20px; /* >=16px prevents iOS zoom */
+    padding:14px 16px;
+    border-radius:12px;
+    border:1px solid var(--border);
+    background:#fff; color:var(--ink);
+    outline:none;
+  }
+  input::placeholder{ color:#9aa9c4 }
+  button{
+    flex:0 0 auto;
+    font-size:18px;
+    padding:14px 18px;
+    border-radius:12px;
+    border:1px solid var(--border);
+    background: linear-gradient(180deg, var(--sky), #5aa6c7);
+    color:#062a4f;
+    font-weight:700;
+    cursor:pointer;
+    transition: transform .04s ease, box-shadow .2s ease;
+    box-shadow: 0 6px 16px rgba(141,200,232,.35);
+  }
+  button:active{ transform: translateY(1px) }
+
+  .error{
+    margin:8px 2px 0 2px; color:var(--danger); font-size:14px; min-height:20px;
+  }
+
+  .results3{
+    display:grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap:12px;
+    margin-top:6px;
+  }
+  .pill{
+    background: var(--off);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:14px 12px;
+    text-align:center;
+  }
+  .pill .tag{
+    font-size:12px; color:var(--muted); margin-bottom:6px;
+  }
+  .pill .num{
+    font-variant-numeric: tabular-nums;
+    font-size:clamp(26px, 6vw, 34px);
+    font-weight:800;
+    line-height:1.1;
+  }
+  .pill.gold{ background: linear-gradient(180deg, rgba(233,221,144,.26), rgba(233,221,144,.14)) }
+  .pill.blue{ background: linear-gradient(180deg, rgba(141,200,232,.22), rgba(141,200,232,.10)) }
+
+  .strategy{
+    text-align:center;
+    margin-top:16px;
+    font-size:15px;
+    background: var(--off);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:10px 12px;
+    color: var(--danger);
+  }
+  .help{
+    margin-top:16px;
+    font-size:14px;
+    color:var(--muted);
+  }
+
+  @media (max-width:640px){
+    .results3{ grid-template-columns: 1fr }
+  }
+</style>
+</head>
+<body>
+  <main class="card" role="main" aria-labelledby="title">
+    <h1 id="title">400 Free SCM Pace Calculator</h1>
+    <p class="lead">Enter a 400 goal time as mm:ss or m:ss or m:s, then press Calculate.</p>
+
+    <div class="statecuts" aria-label="State cuts quick load">
+      <div class="chip" data-time="5:13" role="button" tabindex="0" aria-label="Girls Auto 5 13">Girls AUTO 5:13</div>
+      <div class="chip" data-time="6:16" role="button" tabindex="0" aria-label="Girls Cons 6 16">Girls CONS 6:16</div>
+      <div class="chip" data-time="4:55" role="button" tabindex="0" aria-label="Boys Auto 4 55">Boys AUTO 4:55</div>
+      <div class="chip" data-time="5:54" role="button" tabindex="0" aria-label="Boys Cons 5 54">Boys CONS 5:54</div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label for="goal">Goal time</label>
+        <input id="goal" type="text" inputmode="numeric" autocomplete="off" placeholder="eg 4:55 or 5:13" aria-describedby="err" />
+        <div id="err" class="error" role="alert" aria-live="polite"></div>
+      </div>
+      <button id="go" type="button">Calculate</button>
+    </div>
+
+    <section aria-live="polite" aria-atomic="true">
+      <div id="grid" class="results3" hidden>
+        <div class="pill gold">
+          <div class="tag">First 50</div>
+          <div id="pFirst" class="num">00 s</div>
+        </div>
+        <div class="pill">
+          <div class="tag">Middle 50s</div>
+          <div id="pMiddle" class="num">00 s</div>
+        </div>
+        <div class="pill blue">
+          <div class="tag">Final 50</div>
+          <div id="pLast" class="num">00 s</div>
+        </div>
+      </div>
+
+      <div id="strategy" class="strategy" hidden></div>
+
+      <div class="help">
+        Splits use a realistic pattern. First is faster, middle is even, last is faster. Values round to whole seconds.
+      </div>
+    </section>
+  </main>
+
+<script>
+  const goal = document.getElementById('goal')
+  const btn = document.getElementById('go')
+  const err = document.getElementById('err')
+  const grid = document.getElementById('grid')
+  const pFirst = document.getElementById('pFirst')
+  const pMiddle = document.getElementById('pMiddle')
+  const pLast = document.getElementById('pLast')
+  const strategyBox = document.getElementById('strategy')
+
+  // pacing deltas in seconds
+  // last faster than middle by 0.8
+  // first faster than last by 2.0  which makes first faster than middle by 2.8
+  const DELTA_LAST  = 0.8
+  const DELTA_FIRST = DELTA_LAST + 2.0
+
+  const STRATEGIES = [
+    "Build the first 25 off the dive, one breath after the flags, then settle to a two up one down pattern and win every turn.",
+    "Ride the streamline to ten meters, no breath into each turn, two fast strokes out, press the kick home.",
+    "Keep stroke long on two to seven, breathe every three for control, no breath last ten into the finish.",
+    "Own the walls with tight tucks, fast breakouts to five strokes, relax the hands and keep the legs hot.",
+    "Count strokes twelve to fourteen in the middle, breathe on the away lap only, then add tempo on the last fifty.",
+    "No breath last five into turns, two strong dolphin kicks out, steady exhale to stay loose.",
+    "Hold even hands on the clock for two to seven, then lift tempo on the last fifty with calm catch.",
+    "Lead with legs off every wall, eyes down, clean catch, save the sprint for the final twenty five.",
+    "Control the first fifty, early breaths, lock a metronome rhythm until the bell then sprint home.",
+    "Win the underwater, soft entry, breathe early each length, close with no breath last twelve point five."
+  ]
+
+  function randomStrategy() {
+    return STRATEGIES[Math.floor(Math.random() * STRATEGIES.length)]
+  }
+
+  function calculate() {
+    err.textContent = ''
+    grid.hidden = true
+    strategyBox.hidden = true
+
+    const raw = goal.value.trim()
+    const totalSec = parseTimeFlexible(raw)
+
+    if (totalSec == null || totalSec <= 0) {
+      err.textContent = 'Please enter time as mm:ss or m:ss or m:s'
+      return
+    }
+
+    // middle 50 pace in seconds
+    // total = 6*middle + (middle-DELTA_FIRST) + (middle-DELTA_LAST)
+    // total = 8*middle - (DELTA_FIRST + DELTA_LAST)
+    const middle = (totalSec + (DELTA_FIRST + DELTA_LAST)) / 8
+
+    const first = middle - DELTA_FIRST
+    const last  = middle - DELTA_LAST
+
+    const firstR  = Math.round(first)
+    const middleR = Math.round(middle)
+    const lastR   = Math.round(last)
+
+    pFirst.textContent  = formatSecondsWhole(firstR) + ' s'
+    pMiddle.textContent = formatSecondsWhole(middleR) + ' s'
+    pLast.textContent   = formatSecondsWhole(lastR) + ' s'
+
+    grid.hidden = false
+    strategyBox.textContent = randomStrategy()
+    strategyBox.hidden = false
+  }
+
+  btn.addEventListener('click', calculate)
+  goal.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') calculate()
+  })
+
+  document.querySelectorAll('.statecuts .chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const t = chip.getAttribute('data-time')
+      goal.value = t
+      calculate()
+    })
+    chip.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault()
+        const t = chip.getAttribute('data-time')
+        goal.value = t
+        calculate()
+      }
+    })
+  })
+
+  function parseTimeFlexible(str) {
+    if (!str || !str.includes(':')) return null
+    const parts = str.split(':').map(s => s.trim())
+    if (parts.length !== 2) return null
+    const mStr = parts[0], sStr = parts[1]
+    if (!/^\d{1,2}$/.test(mStr) || !/^\d{1,2}$/.test(sStr)) return null
+    const m = Number(mStr), s = Number(sStr)
+    if (s >= 60) return null
+    return m * 60 + s
+  }
+
+  function formatSecondsWhole(val) {
+    return val < 10 ? '0' + val : '' + val
+  }
+</script>
+</body>
+</html>
