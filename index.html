@@ -3,10 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="default" />
-<title>400 Free SCM Pace Calculator</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='100%25' height='100%25' fill='%2300205b'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-size='36' fill='white' font-family='Arial, sans-serif'%3E400%3C/text%3E%3C/svg%3E" />
+<title>Swim Pace Calculator</title>
 <style>
   :root{
     --white:#ffffff;
@@ -26,278 +23,241 @@
     background: var(--white);
     color: var(--ink);
     min-height: 100dvh;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:24px;
+    display:flex; align-items:center; justify-content:center;
+    padding:20px;
   }
   .card{
-    width:min(820px, 96vw);
+    width:min(860px, 96vw);
     background: linear-gradient(180deg, rgba(0,32,91,.02), rgba(0,32,91,.00));
     border:1px solid var(--border);
     border-radius:20px;
     box-shadow: 0 16px 40px rgba(0,0,0,.06);
-    padding:28px;
+    padding:22px;
   }
-  h1{
-    margin:0 0 6px 0;
-    font-size:clamp(22px, 4.5vw, 30px);
-    letter-spacing:.2px;
+  h1{ margin:0 0 10px 0; font-size:clamp(20px,4.5vw,28px) }
+  .row{ display:grid; grid-template-columns:1fr; gap:12px; margin:10px 0 16px }
+  .field label{ display:block; font-size:14px; color:var(--muted); margin:0 0 6px 2px }
+  select,input,button{
+    width:100%; padding:12px 14px; border-radius:12px;
+    border:1px solid var(--border); background:#fff; color:var(--ink);
+    font-size:16px;
   }
-  p.lead{
-    margin:0 0 16px 0;
-    color:var(--muted);
-    font-size:clamp(14px, 3.2vw, 16px);
-  }
-
-  /* State cuts as clickable chips */
-  .statecuts{
-    display:flex; flex-wrap:wrap; gap:8px; margin:8px 0 18px 0;
-  }
-  .chip{
-    padding:10px 12px;
-    border-radius:999px;
-    border:1px solid var(--border);
-    background: var(--off);
-    font-size:13px;
-    cursor:pointer;
-    user-select:none;
-    transition: box-shadow .2s ease, transform .02s ease, background .2s ease;
-  }
-  .chip:hover{ box-shadow:0 6px 16px rgba(0,0,0,.08) }
-  .chip:active{ transform: translateY(1px) }
-  .chip[data-time="4:55"]{ background: rgba(141,200,232,.20) }
-  .chip[data-time="5:13"]{ background: rgba(233,221,144,.25) }
-
-  .row{
-    display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; margin:8px 0 18px 0;
-  }
-  .field{ flex:1 1 360px }
-  label{
-    display:block; margin:0 0 8px 2px; font-size:14px; color:var(--muted);
-  }
-  input[type="text"]{
-    width:100%;
-    font-size:20px; /* >=16px prevents iOS zoom */
-    padding:14px 16px;
-    border-radius:12px;
-    border:1px solid var(--border);
-    background:#fff; color:var(--ink);
-    outline:none;
-  }
-  input::placeholder{ color:#9aa9c4 }
   button{
-    flex:0 0 auto;
-    font-size:18px;
-    padding:14px 18px;
-    border-radius:12px;
-    border:1px solid var(--border);
     background: linear-gradient(180deg, var(--sky), #5aa6c7);
-    color:#062a4f;
-    font-weight:700;
-    cursor:pointer;
-    transition: transform .04s ease, box-shadow .2s ease;
+    color:#062a4f; font-weight:700; cursor:pointer;
     box-shadow: 0 6px 16px rgba(141,200,232,.35);
   }
-  button:active{ transform: translateY(1px) }
-
-  .error{
-    margin:8px 2px 0 2px; color:var(--danger); font-size:14px; min-height:20px;
-  }
-
-  .results3{
-    display:grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap:12px;
-    margin-top:6px;
-  }
+  .error{ color:var(--danger); font-size:14px; min-height:20px }
+  .results{ display:grid; grid-template-columns:1fr; gap:10px; margin-top:6px }
   .pill{
-    background: var(--off);
-    border:1px solid var(--border);
-    border-radius:16px;
-    padding:14px 12px;
-    text-align:center;
+    background: var(--off); border:1px solid var(--border);
+    border-radius:16px; padding:12px; text-align:center;
   }
-  .pill .tag{
-    font-size:12px; color:var(--muted); margin-bottom:6px;
-  }
-  .pill .num{
-    font-variant-numeric: tabular-nums;
-    font-size:clamp(26px, 6vw, 34px);
-    font-weight:800;
-    line-height:1.1;
-  }
-  .pill.gold{ background: linear-gradient(180deg, rgba(233,221,144,.26), rgba(233,221,144,.14)) }
-  .pill.blue{ background: linear-gradient(180deg, rgba(141,200,232,.22), rgba(141,200,232,.10)) }
-
-  .strategy{
-    text-align:center;
-    margin-top:16px;
-    font-size:15px;
-    background: var(--off);
-    border:1px solid var(--border);
-    border-radius:12px;
-    padding:10px 12px;
-    color: var(--danger);
-  }
-  .help{
-    margin-top:16px;
-    font-size:14px;
-    color:var(--muted);
-  }
-
-  @media (max-width:640px){
-    .results3{ grid-template-columns: 1fr }
+  .pill .tag{ font-size:12px; color:var(--muted); margin-bottom:4px }
+  .pill .num{ font-variant-numeric: tabular-nums; font-size:clamp(22px,5vw,30px); font-weight:800 }
+  .strategy{ margin-top:14px; color:var(--danger); text-align:center; font-size:15px; background:var(--off); border:1px solid var(--border); border-radius:12px; padding:10px }
+  .help{ margin-top:12px; color:var(--muted); font-size:14px }
+  @media (min-width:680px){
+    .row{ grid-template-columns:1fr 1fr 1fr 1fr }
+    .results{ grid-template-columns:repeat(3,1fr) }
   }
 </style>
 </head>
 <body>
   <main class="card" role="main" aria-labelledby="title">
-    <h1 id="title">400 Free SCM Pace Calculator</h1>
-    <p class="lead">Enter a 400 goal time as mm:ss or m:ss or m:s, then press Calculate.</p>
-
-    <div class="statecuts" aria-label="State cuts quick load">
-      <div class="chip" data-time="5:13" role="button" tabindex="0" aria-label="Girls Auto 5 13">Girls AUTO 5:13</div>
-      <div class="chip" data-time="6:16" role="button" tabindex="0" aria-label="Girls Cons 6 16">Girls CONS 6:16</div>
-      <div class="chip" data-time="4:55" role="button" tabindex="0" aria-label="Boys Auto 4 55">Boys AUTO 4:55</div>
-      <div class="chip" data-time="5:54" role="button" tabindex="0" aria-label="Boys Cons 5 54">Boys CONS 5:54</div>
-    </div>
+    <h1 id="title">Swim Pace Calculator</h1>
 
     <div class="row">
       <div class="field">
-        <label for="goal">Goal time</label>
-        <input id="goal" type="text" inputmode="numeric" autocomplete="off" placeholder="eg 4:55 or 5:13" aria-describedby="err" />
-        <div id="err" class="error" role="alert" aria-live="polite"></div>
+        <label for="event">Event</label>
+        <select id="event" aria-label="Event">
+          <option>100 FR</option>
+          <option>200 FR</option>
+          <option>400/500 FR</option>
+          <option>100 BR</option>
+          <option>100 BK</option>
+          <option>100 FLY</option>
+        </select>
       </div>
-      <button id="go" type="button">Calculate</button>
+
+      <div class="field">
+        <label for="course">Course</label>
+        <select id="course" aria-label="Course">
+          <option>SCM</option>
+          <option>SCY</option>
+        </select>
+      </div>
+
+      <div class="field" id="sexWrap" hidden>
+        <label for="sex">Category</label>
+        <select id="sex" aria-label="Category">
+          <option>Men</option>
+          <option>Women</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="goal">Goal time</label>
+        <input id="goal" type="text" inputmode="numeric" placeholder="m:ss or mm:ss" aria-describedby="err" />
+      </div>
+    </div>
+
+    <div class="row" style="grid-template-columns:1fr">
+      <button id="calc" type="button">Calculate</button>
+      <div id="err" class="error" role="alert" aria-live="polite"></div>
     </div>
 
     <section aria-live="polite" aria-atomic="true">
-      <div id="grid" class="results3" hidden>
-        <div class="pill gold">
+      <div id="results" class="results" hidden>
+        <div class="pill" id="pillFirst">
           <div class="tag">First 50</div>
-          <div id="pFirst" class="num">00 s</div>
+          <div class="num" id="firstNum">00 s</div>
         </div>
-        <div class="pill">
+        <div class="pill" id="pillMiddle">
           <div class="tag">Middle 50s</div>
-          <div id="pMiddle" class="num">00 s</div>
+          <div class="num" id="middleNum">00 s</div>
         </div>
-        <div class="pill blue">
+        <div class="pill" id="pillLast">
           <div class="tag">Final 50</div>
-          <div id="pLast" class="num">00 s</div>
+          <div class="num" id="lastNum">00 s</div>
         </div>
       </div>
 
       <div id="strategy" class="strategy" hidden></div>
 
       <div class="help">
-        Splits use a realistic pattern. First is faster, middle is even, last is faster. Values round to whole seconds.
+        Enter a valid time m:ss up to 8:00. Outputs are rounded to whole seconds. 400 equals SCM, 500 equals SCY.
       </div>
     </section>
   </main>
 
 <script>
-  const goal = document.getElementById('goal')
-  const btn = document.getElementById('go')
-  const err = document.getElementById('err')
-  const grid = document.getElementById('grid')
-  const pFirst = document.getElementById('pFirst')
-  const pMiddle = document.getElementById('pMiddle')
-  const pLast = document.getElementById('pLast')
-  const strategyBox = document.getElementById('strategy')
+  const eventSel = document.getElementById('event');
+  const courseSel = document.getElementById('course');
+  const sexWrap = document.getElementById('sexWrap');
+  const sexSel = document.getElementById('sex');
+  const goal = document.getElementById('goal');
+  const calcBtn = document.getElementById('calc');
+  const err = document.getElementById('err');
+  const results = document.getElementById('results');
+  const pillMiddle = document.getElementById('pillMiddle');
+  const firstNum = document.getElementById('firstNum');
+  const middleNum = document.getElementById('middleNum');
+  const lastNum = document.getElementById('lastNum');
+  const strategyBox = document.getElementById('strategy');
 
-  // pacing deltas in seconds
-  // last faster than middle by 0.8
-  // first faster than last by 2.0  which makes first faster than middle by 2.8
-  const DELTA_LAST  = 0.8
-  const DELTA_FIRST = DELTA_LAST + 2.0
-
+  // Strategies: your 3 lines
   const STRATEGIES = [
-    "Build the first 25 off the dive, one breath after the flags, then settle to a two up one down pattern and win every turn.",
-    "Ride the streamline to ten meters, no breath into each turn, two fast strokes out, press the kick home.",
-    "Keep stroke long on two to seven, breathe every three for control, no breath last ten into the finish.",
-    "Own the walls with tight tucks, fast breakouts to five strokes, relax the hands and keep the legs hot.",
-    "Count strokes twelve to fourteen in the middle, breathe on the away lap only, then add tempo on the last fifty.",
-    "No breath last five into turns, two strong dolphin kicks out, steady exhale to stay loose.",
-    "Hold even hands on the clock for two to seven, then lift tempo on the last fifty with calm catch.",
-    "Lead with legs off every wall, eyes down, clean catch, save the sprint for the final twenty five.",
-    "Control the first fifty, early breaths, lock a metronome rhythm until the bell then sprint home.",
-    "Win the underwater, soft entry, breathe early each length, close with no breath last twelve point five."
-  ]
+    "Are you going to rush your underwaters? No, no you're not.",
+    "Let you hatred for the Red Dolphin pull you forward!!",
+    "It's important to breathe. Just make sure you kick faster and breathe quick when you do!"
+  ];
 
-  function randomStrategy() {
-    return STRATEGIES[Math.floor(Math.random() * STRATEGIES.length)]
+  // Pacing rules from your specs
+  // For 100s: 50s should be X seconds apart (first faster), except BR which is 4.5 s
+  // We'll implement as Δfirst = gap, Δlast = 0.
+  const RULES = {
+    "100 FR":   { N: 2, deltas: { first: 3.0, last: 0.0 } },
+    "100 BK":   { N: 2, deltas: { first: 3.0, last: 0.0 } },
+    "100 FLY":  { N: 2, deltas: { first: 3.0, last: 0.0 } },
+    "100 BR":   { N: 2, deltas: { first: 4.5, last: 0.0 } },
+    "200 FR":   { N: 4, deltasBySex: {
+                    Men:   { first: 3.0, last: 0.0 },
+                    Women: { first: 2.0, last: 0.0 }
+                  } },
+    "400/500 FR": { NByCourse: { SCM: 8, SCY: 10 }, deltas: { first: 3.0, last: 1.0 } }
+  };
+
+  function showSexIfNeeded(){
+    sexWrap.hidden = !(eventSel.value === '200 FR');
   }
 
-  function calculate() {
-    err.textContent = ''
-    grid.hidden = true
-    strategyBox.hidden = true
+  function showHideMiddlePill(){
+    // 100s have only First and Last
+    const isHundred = eventSel.value.startsWith('100 ');
+    pillMiddle.style.display = isHundred ? 'none' : '';
+  }
 
-    const raw = goal.value.trim()
-    const totalSec = parseTimeFlexible(raw)
+  function parseTime(str){
+    if (!str || !str.includes(':')) return null;
+    const [mStr, sStr] = str.split(':').map(s => s.trim());
+    if (!/^\d{1,2}$/.test(mStr) || !/^\d{1,2}$/.test(sStr)) return null;
+    const m = Number(mStr), s = Number(sStr);
+    if (s >= 60) return null;
+    const total = m * 60 + s;
+    if (total > 480) return null; // reject > 8:00
+    return total;
+  }
 
-    if (totalSec == null || totalSec <= 0) {
-      err.textContent = 'Please enter time as mm:ss or m:ss or m:s'
-      return
+  function formatWhole(val){
+    return val < 10 ? '0' + val : '' + val;
+  }
+
+  function pickDeltas(){
+    const ev = eventSel.value;
+    if (ev === '200 FR'){
+      const bySex = RULES['200 FR'].deltasBySex[sexSel.value];
+      return { first: bySex.first, last: bySex.last, N: RULES['200 FR'].N };
+    }
+    if (ev === '400/500 FR'){
+      const N = RULES['400/500 FR'].NByCourse[courseSel.value]; // SCM->8, SCY->10
+      const d = RULES['400/500 FR'].deltas;
+      return { first: d.first, last: d.last, N };
+    }
+    // 100s
+    const r = RULES[ev];
+    return { first: r.deltas.first, last: r.deltas.last, N: r.N };
+  }
+
+  function calculate(){
+    err.textContent = '';
+    const total = parseTime(goal.value.trim());
+    if (total == null){
+      results.hidden = true;
+      strategyBox.hidden = true;
+      err.textContent = 'Enter m:ss up to 8:00, with seconds less than 60.';
+      return;
     }
 
-    // middle 50 pace in seconds
-    // total = 6*middle + (middle-DELTA_FIRST) + (middle-DELTA_LAST)
-    // total = 8*middle - (DELTA_FIRST + DELTA_LAST)
-    const middle = (totalSec + (DELTA_FIRST + DELTA_LAST)) / 8
+    const { first: dFirst, last: dLast, N } = pickDeltas();
 
-    const first = middle - DELTA_FIRST
-    const last  = middle - DELTA_LAST
+    // Solve middle pace:
+    // For any N: total = N*middle - (dFirst + dLast)
+    // => middle = (total + dFirst + dLast)/N
+    const middle = (total + dFirst + dLast) / N;
 
-    const firstR  = Math.round(first)
-    const middleR = Math.round(middle)
-    const lastR   = Math.round(last)
+    const first = middle - dFirst;
+    const last  = middle - dLast;
 
-    pFirst.textContent  = formatSecondsWhole(firstR) + ' s'
-    pMiddle.textContent = formatSecondsWhole(middleR) + ' s'
-    pLast.textContent   = formatSecondsWhole(lastR) + ' s'
+    // Round to whole seconds
+    const firstR  = Math.round(first);
+    const middleR = Math.round(middle);
+    const lastR   = Math.round(last);
 
-    grid.hidden = false
-    strategyBox.textContent = randomStrategy()
-    strategyBox.hidden = false
+    // Update UI
+    firstNum.textContent  = formatWhole(firstR) + ' s';
+    middleNum.textContent = formatWhole(middleR) + ' s';
+    lastNum.textContent   = formatWhole(lastR) + ' s';
+
+    showHideMiddlePill();
+    results.hidden = false;
+
+    // Strategy
+    strategyBox.textContent = STRATEGIES[Math.floor(Math.random()*STRATEGIES.length)];
+    strategyBox.hidden = false;
   }
 
-  btn.addEventListener('click', calculate)
-  goal.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') calculate()
-  })
+  // Auto-update on any change
+  [eventSel, courseSel, sexSel, goal].forEach(el => {
+    el.addEventListener('change', () => { showSexIfNeeded(); calculate(); });
+    el.addEventListener('input', () => { calculate(); });
+    el.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); calculate(); } });
+  });
+  calcBtn.addEventListener('click', calculate);
 
-  document.querySelectorAll('.statecuts .chip').forEach(chip => {
-    chip.addEventListener('click', () => {
-      const t = chip.getAttribute('data-time')
-      goal.value = t
-      calculate()
-    })
-    chip.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault()
-        const t = chip.getAttribute('data-time')
-        goal.value = t
-        calculate()
-      }
-    })
-  })
-
-  function parseTimeFlexible(str) {
-    if (!str || !str.includes(':')) return null
-    const parts = str.split(':').map(s => s.trim())
-    if (parts.length !== 2) return null
-    const mStr = parts[0], sStr = parts[1]
-    if (!/^\d{1,2}$/.test(mStr) || !/^\d{1,2}$/.test(sStr)) return null
-    const m = Number(mStr), s = Number(sStr)
-    if (s >= 60) return null
-    return m * 60 + s
-  }
-
-  function formatSecondsWhole(val) {
-    return val < 10 ? '0' + val : '' + val
-  }
+  // On load
+  showSexIfNeeded();
+  showHideMiddlePill();
 </script>
 </body>
 </html>
