@@ -16,7 +16,7 @@
     --ink:#00205b;
     --muted:#415a8a;
     --gold:#e9dd90;     /* final 50 */
-    --sky:#8dc8e8;
+    --sky:#8dc8e8;      /* active button background */
     --border:#e6e6e6;
     --danger:#b00020;
     --light-green:#e8f5e9;   /* first 50 */
@@ -71,7 +71,7 @@
     display:flex;
     flex-direction:column;
     align-items:center;
-    gap:12px;
+    gap:14px;
     margin: 8px 0 16px;
   }
 
@@ -87,16 +87,46 @@
     text-align:center;
   }
 
-  select{
+  /* Event buttons grid (2 x 3) */
+  .event-grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:10px;
+  }
+  @media (min-width:600px){
+    .event-grid{
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .btn{
+    display:inline-block;
     width:100%;
     padding:12px 14px;
     border-radius:12px;
     border:1px solid var(--border);
-    background:#fff; color:var(--ink);
+    background:#fff;
+    color:var(--ink);
     font-size:16px;
+    text-align:center;
+    cursor:pointer;
+    user-select:none;
+    transition: box-shadow .2s ease, transform .02s ease, background .2s ease;
+  }
+  .btn:active{ transform: translateY(1px) }
+  .btn--active{
+    background: var(--sky);
+    border-color: #7ab9d9;
   }
 
-  /* Emphasized Goal box — centerpiece, same width as selects */
+  /* Course buttons (shown only for 400/500) stacked vertically */
+  .course-buttons{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+
+  /* Emphasized Goal box — centerpiece, same width as controls */
   .goal-wrap{
     background: var(--off);
     border:1px solid var(--border);
@@ -204,32 +234,33 @@
 
       <!-- Controls (all centered, same width) -->
       <div class="controls">
+        <!-- Event buttons grid -->
         <div class="field">
-          <label for="event">Event</label>
-          <select id="event" aria-label="Event">
-            <option>100 FR</option>
-            <option>200 FR</option>
-            <option>400/500 FR</option>
-            <option>100 BR</option>
-            <option>100 BK</option>
-            <option>100 FLY</option>
-          </select>
+          <label for="eventButtons">Event</label>
+          <div id="eventButtons" class="event-grid" role="group" aria-label="Event selection">
+            <button class="btn" data-event="100 FR" aria-pressed="false">100 FR</button>
+            <button class="btn" data-event="200 FR" aria-pressed="false">200 FR</button>
+            <button class="btn" data-event="400/500 FR" aria-pressed="false">400/500 FR</button>
+            <button class="btn" data-event="100 BR" aria-pressed="false">100 BR</button>
+            <button class="btn" data-event="100 BK" aria-pressed="false">100 BK</button>
+            <button class="btn" data-event="100 FLY" aria-pressed="false">100 FLY</button>
+          </div>
         </div>
 
-        <!-- Course shows only when 400/500 FR is selected -->
+        <!-- Course buttons (only when 400/500 FR is selected) -->
         <div class="field" id="courseWrap" hidden>
-          <label for="course">Course</label>
-          <select id="course" aria-label="Course">
-            <option>SCM</option>
-            <option>SCY</option>
-          </select>
+          <label for="courseButtons">Course</label>
+          <div id="courseButtons" class="course-buttons" role="group" aria-label="Course selection">
+            <button class="btn" data-course="SCM" aria-pressed="false">SCM</button>
+            <button class="btn" data-course="SCY" aria-pressed="false">SCY</button>
+          </div>
         </div>
 
         <!-- Emphasized Goal Input (centerpiece) -->
         <div class="field goal-wrap">
           <label for="goal">Goal time</label>
           <input id="goal" type="text" inputmode="text"
-                 placeholder="m:ss or ss"
+                 placeholder="m:ss or mm:ss or ss"
                  aria-describedby="err" />
         </div>
       </div>
@@ -265,17 +296,22 @@
   </div>
 
 <script>
-  const eventSel = document.getElementById('event');
-  const courseSel = document.getElementById('course');
-  const courseWrap = document.getElementById('courseWrap');
-  const goal = document.getElementById('goal');
-  const err = document.getElementById('err');
-  const results = document.getElementById('results');
-  const pillMiddle = document.getElementById('pillMiddle');
-  const firstNum = document.getElementById('firstNum');
-  const middleNum = document.getElementById('middleNum');
-  const lastNum = document.getElementById('lastNum');
-  const strategyBox = document.getElementById('strategy');
+  // ------ Elements
+  const eventButtons = document.getElementById('eventButtons');
+  const courseWrap   = document.getElementById('courseWrap');
+  const courseButtons= document.getElementById('courseButtons');
+  const goal         = document.getElementById('goal');
+  const err          = document.getElementById('err');
+  const results      = document.getElementById('results');
+  const pillMiddle   = document.getElementById('pillMiddle');
+  const firstNum     = document.getElementById('firstNum');
+  const middleNum    = document.getElementById('middleNum');
+  const lastNum      = document.getElementById('lastNum');
+  const strategyBox  = document.getElementById('strategy');
+
+  // Current selections
+  let currentEvent = null;
+  let currentCourse = 'SCM'; // default if 400/500 not chosen yet
 
   // Strategy lines (your 3)
   const STRATEGIES = [
@@ -297,14 +333,28 @@
     "400/500 FR": { NByCourse: { SCM: 8, SCY: 10 }, deltas: { first: 3.0, last: 1.0 } }
   };
 
+  // ------ Helpers
+  function setActiveButton(groupEl, btn){
+    // deactivate all
+    groupEl.querySelectorAll('.btn').forEach(b=>{
+      b.classList.remove('btn--active');
+      b.setAttribute('aria-pressed','false');
+    });
+    // activate this one
+    if (btn){
+      btn.classList.add('btn--active');
+      btn.setAttribute('aria-pressed','true');
+    }
+  }
+
   function toggleCourse(){
     // Only show Course when 400/500 FR is selected
-    const isLong = eventSel.value === '400/500 FR';
+    const isLong = currentEvent === '400/500 FR';
     courseWrap.hidden = !isLong;
   }
 
   function setResultsLayout(){
-    const isHundred = eventSel.value.startsWith('100 ');
+    const isHundred = currentEvent && currentEvent.startsWith('100 ');
     if (isHundred){
       pillMiddle.style.display = 'none';
       results.classList.remove('three');
@@ -343,18 +393,34 @@
   }
 
   function pickDeltas(){
-    const ev = eventSel.value;
-    if (ev === '400/500 FR'){
-      const N = RULES['400/500 FR'].NByCourse[courseSel.value || 'SCM']; // default SCM if hidden
+    if (!currentEvent) return null;
+    if (currentEvent === '400/500 FR'){
+      const N = RULES['400/500 FR'].NByCourse[currentCourse || 'SCM'];
       const d = RULES['400/500 FR'].deltas;
       return { first: d.first, last: d.last, N };
     }
-    const r = RULES[ev];
+    const r = RULES[currentEvent];
     return { first: r.deltas.first, last: r.deltas.last, N: r.N };
   }
 
   function calculate(){
     err.textContent = '';
+
+    // Require an event selection
+    if (!currentEvent){
+      results.hidden = true;
+      strategyBox.hidden = true;
+      err.textContent = 'Select an event.';
+      return;
+    }
+
+    // If 400/500, require a course selection (defaults to SCM if none pressed yet)
+    if (currentEvent === '400/500 FR' && !currentCourse){
+      results.hidden = true;
+      strategyBox.hidden = true;
+      err.textContent = 'Choose a course (SCM or SCY).';
+      return;
+    }
 
     const total = parseTimeFlexible(goal.value.trim());
     if (total == null){
@@ -364,7 +430,13 @@
       return;
     }
 
-    const { first: dFirst, last: dLast, N } = pickDeltas();
+    const picked = pickDeltas();
+    if (!picked){
+      results.hidden = true;
+      strategyBox.hidden = true;
+      return;
+    }
+    const { first: dFirst, last: dLast, N } = picked;
 
     // Solve middle pace:
     // total = N*middle - (dFirst + dLast)  => middle = (total + dFirst + dLast)/N
@@ -389,16 +461,61 @@
     strategyBox.hidden = false;
   }
 
-  // Auto-recalc and Enter key support
-  [eventSel, courseSel, goal].forEach(el => {
-    el.addEventListener('change', () => { toggleCourse(); calculate(); });
-    el.addEventListener('input', () => { calculate(); });
-    el.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); calculate(); } });
+  // ------ Event listeners
+  // Event grid buttons (toggle selection)
+  eventButtons.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.btn');
+    if (!btn) return;
+    const ev = btn.getAttribute('data-event');
+    currentEvent = ev;
+    setActiveButton(eventButtons, btn);
+    toggleCourse();
+    // If switching away from 400/500, clear any course highlighting
+    if (ev !== '400/500 FR'){
+      setActiveButton(courseButtons, null);
+    } else {
+      // default course to SCM for calculation unless user taps SCY
+      currentCourse = currentCourse || 'SCM';
+    }
+    calculate();
+  });
+
+  // Keyboard accessibility for event buttons
+  eventButtons.addEventListener('keydown', (e)=>{
+    if (e.key === 'Enter' || e.key === ' '){
+      const btn = e.target.closest('.btn');
+      if (!btn) return;
+      e.preventDefault();
+      btn.click();
+    }
+  });
+
+  // Course buttons (SCM / SCY)
+  courseButtons.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.btn');
+    if (!btn) return;
+    const crs = btn.getAttribute('data-course');
+    currentCourse = crs;
+    setActiveButton(courseButtons, btn);
+    calculate();
+  });
+  courseButtons.addEventListener('keydown', (e)=>{
+    if (e.key === 'Enter' || e.key === ' '){
+      const btn = e.target.closest('.btn');
+      if (!btn) return;
+      e.preventDefault();
+      btn.click();
+    }
+  });
+
+  // Goal input — live update + Enter key
+  goal.addEventListener('input', calculate);
+  goal.addEventListener('keydown', e => {
+    if (e.key === 'Enter'){ e.preventDefault(); calculate(); }
   });
 
   // Init
-  toggleCourse();
-  setResultsLayout();
+  // (No default event selected; user taps one. Keeps UI clear on load.)
 </script>
 </body>
 </html>
