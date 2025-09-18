@@ -126,6 +126,52 @@
     gap:10px;
   }
 
+  /* State cuts (expandable) */
+  details.cuts{
+    width: var(--control-w);
+    margin: 4px auto 0 auto;
+    border:1px solid var(--border);
+    border-radius:12px;
+    background: var(--off);
+  }
+  details.cuts > summary{
+    padding:10px 12px;
+    cursor:pointer;
+    list-style:none;
+    font-weight:700;
+    color:var(--ink);
+    text-align:center;
+    border-radius:12px;
+  }
+  details.cuts[open] > summary{
+    border-bottom:1px solid var(--border);
+    border-bottom-left-radius:0;
+    border-bottom-right-radius:0;
+  }
+  .cuts-content{
+    padding:12px;
+  }
+  .cuts-grid{
+    width:100%;
+    border-collapse: collapse;
+  }
+  .cuts-grid th, .cuts-grid td{
+    border:1px solid var(--border);
+    padding:8px;
+    text-align:center;
+    font-size:14px;
+  }
+  .cuts-grid th{
+    background:#fff;
+    font-weight:700;
+  }
+  .cuts-note{
+    margin-top:6px;
+    color:var(--muted);
+    font-size:12px;
+    text-align:center;
+  }
+
   /* Emphasized Goal box — centerpiece, same width as controls */
   .goal-wrap{
     background: var(--off);
@@ -256,6 +302,35 @@
           </div>
         </div>
 
+        <!-- Expandable State Cuts -->
+        <details class="cuts" id="cutsBox">
+          <summary>2025 State Cuts</summary>
+          <div class="cuts-content">
+            <table class="cuts-grid" id="cutsGrid" aria-label="State cuts table">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>SCY</th>
+                  <th>SCM</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th>Women</th>
+                  <td id="w-scy">—</td>
+                  <td id="w-scm">—</td>
+                </tr>
+                <tr>
+                  <th>Men</th>
+                  <td id="m-scy">—</td>
+                  <td id="m-scm">—</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="cuts-note">AUTO / CONS shown for each course</div>
+          </div>
+        </details>
+
         <!-- Emphasized Goal Input (centerpiece) -->
         <div class="field goal-wrap">
           <label for="goal">Goal time</label>
@@ -289,7 +364,7 @@
 
         <!-- Single-line description at the very bottom -->
         <div class="help">
-          Time formats accepted: <strong>m:ss</strong>, <strong>mm:ss</strong>, or <strong>seconds</strong>
+          Time formats accepted: <strong>m:ss</strong>, <strong>seconds</strong>
         </div>
       </section>
     </main>
@@ -308,6 +383,12 @@
   const middleNum    = document.getElementById('middleNum');
   const lastNum      = document.getElementById('lastNum');
   const strategyBox  = document.getElementById('strategy');
+
+  // State cuts cells
+  const wSCY = document.getElementById('w-scy');
+  const wSCM = document.getElementById('w-scm');
+  const mSCY = document.getElementById('m-scy');
+  const mSCM = document.getElementById('m-scm');
 
   // Current selections
   let currentEvent = null;
@@ -333,14 +414,42 @@
     "400/500 FR": { NByCourse: { SCM: 8, SCY: 10 }, deltas: { first: 3.0, last: 1.0 } }
   };
 
+  // 2025 SC State Cuts (excerpted & filtered; relays, 50 free, 200 IM excluded)
+  // Format: [AUTO, CONS] for SCY/SCM per gender
+  const CUTS = {
+    "100 FR": {
+      Women: { SCY: ["1:00.41","1:12.49"], SCM: ["1:07.18","1:20.61"] },
+      Men:   { SCY: ["54.72","1:05.66"],   SCM: ["1:00.79","1:12.95"] }
+    },
+    "200 FR": {
+      Women: { SCY: ["2:12.45","2:38.94"], SCM: ["2:26.75","2:56.11"] },
+      Men:   { SCY: ["2:04.96","2:29.95"], SCM: ["2:18.46","2:46.15"] }
+    },
+    "100 FLY": {
+      Women: { SCY: ["1:07.95","1:21.54"], SCM: ["1:15.49","1:30.59"] },
+      Men:   { SCY: ["1:00.90","1:13.08"], SCM: ["1:07.84","1:21.41"] }
+    },
+    "100 BK": {
+      Women: { SCY: ["1:09.06","1:22.87"], SCM: ["1:16.73","1:32.07"] },
+      Men:   { SCY: ["1:03.93","1:16.72"], SCM: ["1:11.03","1:25.23"] }
+    },
+    "100 BR": {
+      Women: { SCY: ["1:17.53","1:33.04"], SCM: ["1:26.21","1:43.46"] },
+      Men:   { SCY: ["1:10.72","1:24.86"], SCM: ["1:18.50","1:34.20"] }
+    },
+    // For 400/500: show 500 (SCY) and 400 (SCM conversion line)
+    "400/500 FR": {
+      Women: { SCY: ["5:57.33","7:08.80"], SCM: ["6:16.14","7:34.45"] },
+      Men:   { SCY: ["5:36.88","6:44.26"], SCM: ["5:54.94","7:05.28"] }
+    }
+  };
+
   // ------ Helpers
   function setActiveButton(groupEl, btn){
-    // deactivate all
     groupEl.querySelectorAll('.btn').forEach(b=>{
       b.classList.remove('btn--active');
       b.setAttribute('aria-pressed','false');
     });
-    // activate this one
     if (btn){
       btn.classList.add('btn--active');
       btn.setAttribute('aria-pressed','true');
@@ -366,10 +475,23 @@
     }
   }
 
+  function updateCuts(){
+    if (!currentEvent || !CUTS[currentEvent]){
+      wSCY.textContent = wSCM.textContent = mSCY.textContent = mSCM.textContent = "—";
+      return;
+    }
+    const evCuts = CUTS[currentEvent];
+    const fmt = (arr)=> arr && arr.length ? `AUTO: ${arr[0]} / CONS: ${arr[1]}` : "—";
+    wSCY.textContent = fmt(evCuts.Women.SCY);
+    wSCM.textContent = fmt(evCuts.Women.SCM);
+    mSCY.textContent = fmt(evCuts.Men.SCY);
+    mSCM.textContent = fmt(evCuts.Men.SCM);
+  }
+
   function parseTimeFlexible(str){
     if (!str) return null;
 
-    // Digits-only seconds (no ":" or ".")
+    // Digits-only seconds
     if (/^\d+$/.test(str)) {
       const sec = Number(str);
       if (sec < 44) return null;   // must be >= 44 seconds
@@ -377,7 +499,7 @@
       return sec;
     }
 
-    // m:ss or mm:ss
+    // m:ss
     if (!str.includes(':')) return null;
     const [mStr, sStr] = str.split(':').map(s => s.trim());
     if (!/^\d{1,2}$/.test(mStr) || !/^\d{1,2}$/.test(sStr)) return null;
@@ -406,15 +528,12 @@
   function calculate(){
     err.textContent = '';
 
-    // Require an event selection
     if (!currentEvent){
       results.hidden = true;
       strategyBox.hidden = true;
       err.textContent = 'Select an event.';
       return;
     }
-
-    // If 400/500, require a course selection (defaults to SCM if none pressed yet)
     if (currentEvent === '400/500 FR' && !currentCourse){
       results.hidden = true;
       strategyBox.hidden = true;
@@ -426,7 +545,7 @@
     if (total == null){
       results.hidden = true;
       strategyBox.hidden = true;
-      err.textContent = 'Enter m:ss, mm:ss, or seconds';
+      err.textContent = 'Enter m:ss or seconds (44–480).';
       return;
     }
 
@@ -462,31 +581,31 @@
   }
 
   // ------ Event listeners
-  // Event grid buttons (toggle selection)
-  eventButtons.addEventListener('click', (e)=>{
-    const btn = e.target.closest('.btn');
-    if (!btn) return;
+  function handleEventButton(btn){
     const ev = btn.getAttribute('data-event');
     currentEvent = ev;
     setActiveButton(eventButtons, btn);
     toggleCourse();
-    // If switching away from 400/500, clear any course highlighting
+    // If switching away from 400/500, clear course highlighting & selection
     if (ev !== '400/500 FR'){
+      currentCourse = 'SCM';
       setActiveButton(courseButtons, null);
-    } else {
-      // default course to SCM for calculation unless user taps SCY
-      currentCourse = currentCourse || 'SCM';
     }
+    updateCuts();
     calculate();
-  });
+  }
 
-  // Keyboard accessibility for event buttons
+  eventButtons.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.btn');
+    if (!btn) return;
+    handleEventButton(btn);
+  });
   eventButtons.addEventListener('keydown', (e)=>{
     if (e.key === 'Enter' || e.key === ' '){
       const btn = e.target.closest('.btn');
       if (!btn) return;
       e.preventDefault();
-      btn.click();
+      handleEventButton(btn);
     }
   });
 
@@ -514,8 +633,8 @@
     if (e.key === 'Enter'){ e.preventDefault(); calculate(); }
   });
 
-  // Init
-  // (No default event selected; user taps one. Keeps UI clear on load.)
+  // Init (no default event selected)
+  updateCuts();
 </script>
 </body>
 </html>
