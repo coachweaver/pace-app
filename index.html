@@ -122,7 +122,12 @@
     gap:10px;
   }
 
-  /* State cuts (expandable) — centered */
+  /* State cuts (expandable) — fully centered */
+  .cuts-wrap{
+    display:flex;
+    justify-content:center;
+    width:100%;
+  }
   details.cuts{
     width: var(--control-w);
     margin: 4px auto 0 auto;
@@ -130,8 +135,12 @@
     border-radius:12px;
     background: var(--off);
     text-align:center;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
   }
   details.cuts > summary{
+    width:100%;
     padding:10px 12px;
     cursor:pointer;
     list-style:none;
@@ -157,18 +166,24 @@
     border-bottom-left-radius:0;
     border-bottom-right-radius:0;
   }
-  .cuts-content{ padding:12px; }
-
+  .cuts-content{
+    width:100%;
+    padding:12px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;   /* center inner content */
+    gap:8px;
+  }
   .cuts-subtitle{
-    margin:10px auto 6px auto;
+    margin:6px auto 4px auto;
     font-size:15px;
     font-weight:700;
     color:var(--ink);
+    text-align:center;
   }
-
   .cuts-grid{
     width: min(520px, 100%);
-    margin: 0 auto 12px auto;  /* centered */
+    margin: 0 auto 8px auto;  /* centered */
     border-collapse: collapse;
   }
   .cuts-grid th, .cuts-grid td{
@@ -190,14 +205,13 @@
     padding:16px;
     box-shadow: 0 8px 24px rgba(0,0,0,.06);
   }
-
   #goal{
     width:100%;
     padding:18px 20px;
     border-radius:12px;
     border:2px solid var(--ink);
     background:#fff; color:var(--ink);
-    font-size: clamp(24px, 6vw, 32px); /* larger on mobile and desktop */
+    font-size: clamp(24px, 6vw, 32px);
     font-weight:800;
     text-align:center;
   }
@@ -279,7 +293,7 @@
 <body>
   <div class="wrap">
     <main class="card" role="main" aria-labelledby="title">
-      <!-- Top centered image (safe with iPhone notch) -->
+      <!-- Top centered image -->
       <img class="logo" src="https://github.com/coachweaver/pace-app/blob/main/Badge%20Color%20(1).png?raw=true" alt="Team Badge" />
 
       <h1 id="title">Race Pace Calculator</h1>
@@ -308,57 +322,59 @@
           </div>
         </div>
 
-        <!-- Expandable State Cuts (centered) -->
-        <details class="cuts" id="cutsBox">
-          <summary>2025 State Cuts</summary>
-          <div class="cuts-content">
-            <div class="cuts-subtitle">Women</div>
-            <table class="cuts-grid" aria-label="Women state cuts">
-              <thead>
-                <tr>
-                  <th></th>
-                  <th>SCY</th>
-                  <th>SCM</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <th>AUTO</th>
-                  <td id="w-scy-auto">—</td>
-                  <td id="w-scm-auto">—</td>
-                </tr>
-                <tr>
-                  <th>CONS</th>
-                  <td id="w-scy-cons">—</td>
-                  <td id="w-scm-cons">—</td>
-                </tr>
-              </tbody>
-            </table>
+        <!-- Expandable State Cuts (CENTERED) -->
+        <div class="cuts-wrap">
+          <details class="cuts" id="cutsBox">
+            <summary>2025 State Cuts</summary>
+            <div class="cuts-content">
+              <div class="cuts-subtitle">Women</div>
+              <table class="cuts-grid" aria-label="Women state cuts">
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>SCY</th>
+                    <th>SCM</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th>AUTO</th>
+                    <td id="w-scy-auto">—</td>
+                    <td id="w-scm-auto">—</td>
+                  </tr>
+                  <tr>
+                    <th>CONS</th>
+                    <td id="w-scy-cons">—</td>
+                    <td id="w-scm-cons">—</td>
+                  </tr>
+                </tbody>
+              </table>
 
-            <div class="cuts-subtitle">Men</div>
-            <table class="cuts-grid" aria-label="Men state cuts">
-              <thead>
-                <tr>
-                  <th></th>
-                  <th>SCY</th>
-                  <th>SCM</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <th>AUTO</th>
-                  <td id="m-scy-auto">—</td>
-                  <td id="m-scm-auto">—</td>
-                </tr>
-                <tr>
-                  <th>CONS</th>
-                  <td id="m-scy-cons">—</td>
-                  <td id="m-scm-cons">—</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </details>
+              <div class="cuts-subtitle">Men</div>
+              <table class="cuts-grid" aria-label="Men state cuts">
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>SCY</th>
+                    <th>SCM</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th>AUTO</th>
+                    <td id="m-scy-auto">—</td>
+                    <td id="m-scm-auto">—</td>
+                  </tr>
+                  <tr>
+                    <th>CONS</th>
+                    <td id="m-scy-cons">—</td>
+                    <td id="m-scm-cons">—</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </details>
+        </div>
 
         <!-- Emphasized Goal Input (centerpiece) -->
         <div class="field goal-wrap">
@@ -376,15 +392,15 @@
         <div id="results" class="results three" hidden>
           <div class="pill" id="pillFirst">
             <div class="tag">First 50 Pace</div>
-            <div class="num" id="firstNum">00 s</div>
+            <div class="num" id="firstNum">—</div>
           </div>
           <div class="pill" id="pillMiddle">
             <div class="tag">Middle 50s Pace</div>
-            <div class="num" id="middleNum">00 s</div>
+            <div class="num" id="middleNum">—</div>
           </div>
           <div class="pill" id="pillLast">
             <div class="tag">Final 50 Pace</div>
-            <div class="num" id="lastNum">00 s</div>
+            <div class="num" id="lastNum">—</div>
           </div>
         </div>
 
@@ -413,24 +429,25 @@
   const lastNum      = document.getElementById('lastNum');
   const strategyBox  = document.getElementById('strategy');
 
-  // State cuts cells (women)
-  const wCells = {
-    scyAuto: document.getElementById('w-scy-auto'),
-    scmAuto: document.getElementById('w-scm-auto'),
-    scyCons: document.getElementById('w-scy-cons'),
-    scmCons: document.getElementById('w-scm-cons')
-  };
-  // State cuts cells (men)
-  const mCells = {
-    scyAuto: document.getElementById('m-scy-auto'),
-    scmAuto: document.getElementById('m-scm-auto'),
-    scyCons: document.getElementById('m-scy-cons'),
-    scmCons: document.getElementById('m-scm-cons')
+  // State cuts cells
+  const cells = {
+    w: {
+      scyAuto: document.getElementById('w-scy-auto'),
+      scmAuto: document.getElementById('w-scm-auto'),
+      scyCons: document.getElementById('w-scy-cons'),
+      scmCons: document.getElementById('w-scm-cons')
+    },
+    m: {
+      scyAuto: document.getElementById('m-scy-auto'),
+      scmAuto: document.getElementById('m-scm-auto'),
+      scyCons: document.getElementById('m-scy-cons'),
+      scmCons: document.getElementById('m-scm-cons')
+    }
   };
 
   // Current selections
   let currentEvent = null;
-  let currentCourse = 'SCM'; // default if 400/500 not chosen yet
+  let currentCourse = null; // must be explicitly chosen for 400/500
 
   // Strategy lines (your 3)
   const STRATEGIES = [
@@ -440,9 +457,6 @@
   ];
 
   // Pacing rules
-  // 100s: two splits; first is X seconds faster than last (gap). Implemented as dFirst=gap, dLast=0.
-  // 200 FR: Δ(First→Middle) = +3, Δ(Middle→Last) = 0
-  // 400/500 FR: Δ(First→Middle) = +3, Δ(Middle→Last) = 1; N by course (SCM=8, SCY=10)
   const RULES = {
     "100 FR":     { N: 2, deltas: { first: 3.0, last: 0.0 } },
     "100 BK":     { N: 2, deltas: { first: 3.0, last: 0.0 } },
@@ -452,7 +466,7 @@
     "400/500 FR": { NByCourse: { SCM: 8, SCY: 10 }, deltas: { first: 3.0, last: 1.0 } }
   };
 
-  // 2025 SC State Cuts (filtered; relays, 50 free, 200 IM excluded)
+  // 2025 SC State Cuts (filtered)
   // Stored as: [AUTO, CONS] for SCY/SCM per gender
   const CUTS = {
     "100 FR": {
@@ -475,7 +489,7 @@
       Women: { SCY: ["1:17.53","1:33.04"], SCM: ["1:26.21","1:43.46"] },
       Men:   { SCY: ["1:10.72","1:24.86"], SCM: ["1:18.50","1:34.20"] }
     },
-    // For 400/500: show 500 (SCY) and 400 (SCM conversion line)
+    // 500y/400m
     "400/500 FR": {
       Women: { SCY: ["5:57.33","7:08.80"], SCM: ["6:16.14","7:34.45"] },
       Men:   { SCY: ["5:36.88","6:44.26"], SCM: ["5:54.94","7:05.28"] }
@@ -514,25 +528,22 @@
 
   function updateCuts(){
     // Reset
-    [wCells.scyAuto,wCells.scmAuto,wCells.scyCons,wCells.scmCons,
-     mCells.scyAuto,mCells.scmAuto,mCells.scyCons,mCells.scmCons].forEach(el=>el.textContent="—");
+    Object.values(cells.w).forEach(el=>el.textContent="—");
+    Object.values(cells.m).forEach(el=>el.textContent="—");
 
     if (!currentEvent || !CUTS[currentEvent]) return;
 
     const evCuts = CUTS[currentEvent];
-    const put = (cell, val) => { cell.textContent = val || "—"; };
-
     // Women
-    put(wCells.scyAuto, evCuts.Women.SCY?.[0]);
-    put(wCells.scyCons, evCuts.Women.SCY?.[1]);
-    put(wCells.scmAuto, evCuts.Women.SCM?.[0]);
-    put(wCells.scmCons, evCuts.Women.SCM?.[1]);
-
+    cells.w.scyAuto.textContent = evCuts.Women.SCY?.[0] || "—";
+    cells.w.scyCons.textContent = evCuts.Women.SCY?.[1] || "—";
+    cells.w.scmAuto.textContent = evCuts.Women.SCM?.[0] || "—";
+    cells.w.scmCons.textContent = evCuts.Women.SCM?.[1] || "—";
     // Men
-    put(mCells.scyAuto, evCuts.Men.SCY?.[0]);
-    put(mCells.scyCons, evCuts.Men.SCY?.[1]);
-    put(mCells.scmAuto, evCuts.Men.SCM?.[0]);
-    put(mCells.scmCons, evCuts.Men.SCM?.[1]);
+    cells.m.scyAuto.textContent = evCuts.Men.SCY?.[0] || "—";
+    cells.m.scyCons.textContent = evCuts.Men.SCY?.[1] || "—";
+    cells.m.scmAuto.textContent = evCuts.Men.SCM?.[0] || "—";
+    cells.m.scmCons.textContent = evCuts.Men.SCM?.[1] || "—";
   }
 
   function parseTimeFlexible(str){
@@ -564,12 +575,19 @@
   function pickDeltas(){
     if (!currentEvent) return null;
     if (currentEvent === '400/500 FR'){
-      const N = RULES['400/500 FR'].NByCourse[currentCourse || 'SCM'];
+      if (!currentCourse) return null; // course must be selected
+      const N = RULES['400/500 FR'].NByCourse[currentCourse];
       const d = RULES['400/500 FR'].deltas;
       return { first: d.first, last: d.last, N };
     }
     const r = RULES[currentEvent];
     return { first: r.deltas.first, last: r.deltas.last, N: r.N };
+  }
+
+  function showDashes(){
+    firstNum.textContent = '—';
+    middleNum.textContent = '—';
+    lastNum.textContent   = '—';
   }
 
   function calculate(){
@@ -581,12 +599,6 @@
       err.textContent = 'Select an event.';
       return;
     }
-    if (currentEvent === '400/500 FR' && !currentCourse){
-      results.hidden = true;
-      strategyBox.hidden = true;
-      err.textContent = 'Choose a course (SCM or SCY).';
-      return;
-    }
 
     const total = parseTimeFlexible(goal.value.trim());
     if (total == null){
@@ -596,12 +608,18 @@
       return;
     }
 
+    // Layout set based on event
+    setResultsLayout();
+    results.hidden = false;
+
     const picked = pickDeltas();
     if (!picked){
-      results.hidden = true;
-      strategyBox.hidden = true;
+      // If 400/500 and no course chosen: show dashes, no error
+      showDashes();
+      strategyBox.hidden = true; // avoid strategy until actual paces are shown
       return;
     }
+
     const { first: dFirst, last: dLast, N } = picked;
 
     // Solve middle pace:
@@ -618,9 +636,6 @@
     middleNum.textContent = formatWhole(middleR) + ' s';
     lastNum.textContent   = formatWhole(lastR) + ' s';
 
-    setResultsLayout();
-    results.hidden = false;
-
     // Strategy (strong + visible)
     const STRAT = STRATEGIES[Math.floor(Math.random()*STRATEGIES.length)];
     strategyBox.textContent = STRAT;
@@ -628,24 +643,17 @@
   }
 
   // ------ Event listeners
-  function setActiveButton(groupEl, btn){
-    groupEl.querySelectorAll('.btn').forEach(b=>{
-      b.classList.remove('btn--active');
-      b.setAttribute('aria-pressed','false');
-    });
-    if (btn){
-      btn.classList.add('btn--active');
-      btn.setAttribute('aria-pressed','true');
-    }
-  }
-
   function handleEventButton(btn){
     const ev = btn.getAttribute('data-event');
     currentEvent = ev;
     setActiveButton(eventButtons, btn);
-    toggleCourse();
-    if (ev !== '400/500 FR'){
-      currentCourse = 'SCM';
+    // Reset/Toggle course UI
+    if (ev === '400/500 FR'){
+      courseWrap.hidden = false;
+      // keep currentCourse as-is until user taps; start as null
+    } else {
+      courseWrap.hidden = true;
+      currentCourse = null;
       setActiveButton(courseButtons, null);
     }
     updateCuts();
@@ -689,7 +697,6 @@
   goal.addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); calculate(); } });
 
   // Init
-  // (No default event selected; user taps one.)
   updateCuts();
 </script>
 </body>
