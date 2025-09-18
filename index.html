@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -21,7 +22,10 @@
     --danger:#b00020;
     --light-green:#e8f5e9;   /* first 50 */
     --light-yellow:#fffbe6;  /* middle 50s */
+    --control-w: clamp(260px, 90vw, 360px); /* unified width for controls */
+    --card-w: min(920px, 100%);
   }
+
   *,*::before,*::after{ box-sizing:border-box }
   html,body{ height:100% }
   body{
@@ -30,50 +34,50 @@
     background: var(--white);
     color: var(--ink);
     min-height: 100dvh;
+    padding: 0;
+  }
+
+  .wrap{
+    max-width: var(--card-w);
+    margin: 0 auto;
     padding: clamp(12px, 3vw, 24px);
     padding-top: calc(max(12px, env(safe-area-inset-top)));
-    display:flex; align-items:flex-start; justify-content:center;
   }
+
   .card{
-    width:min(900px, 96vw);
+    width: 100%;
     background: linear-gradient(180deg, rgba(0,32,91,.02), rgba(0,32,91,.00));
     border:1px solid var(--border);
     border-radius:20px;
     box-shadow: 0 16px 40px rgba(0,0,0,.06);
-    padding:22px;
+    padding: clamp(18px, 2.5vw, 28px);
   }
 
   /* Badge */
   .logo{
     display:block;
-    margin: max(6px, env(safe-area-inset-top)) auto 10px auto;
+    margin: max(6px, env(safe-area-inset-top)) auto 12px auto;
     width:min(140px, 42vw);
     height:auto;
   }
 
   h1{
-    margin:6px 0 12px 0;
+    margin:6px 0 16px 0;
     text-align:center;
     font-size:clamp(20px,4.5vw,28px);
   }
 
-  /* Controls layout */
+  /* Controls section — always centered and same width */
   .controls{
-    display:grid;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
     gap:12px;
-    margin:10px 0 16px;
+    margin: 8px 0 16px;
   }
 
-  /* Centered, fixed-width Event on desktop */
-  .eventWrap{
-    width: min(320px, 92vw);
-    margin: 0 auto;           /* centers it */
-  }
-
-  /* Course shows only for 400/500; also centered but narrower */
-  .courseWrap{
-    width: min(220px, 92vw);
-    margin: 0 auto;
+  .field{
+    width: var(--control-w);
   }
 
   .field label{
@@ -93,27 +97,22 @@
     font-size:16px;
   }
 
-  /* Emphasized Goal box — centerpiece */
+  /* Emphasized Goal box — centerpiece, same width as selects */
   .goal-wrap{
     background: var(--off);
     border:1px solid var(--border);
     border-radius:16px;
     padding:16px;
     box-shadow: 0 8px 24px rgba(0,0,0,.06);
-    width: min(560px, 96vw);
-    margin: 6px auto 12px auto;   /* centered */
   }
-  .goal-wrap label{
-    font-size:15px;
-    text-align:center;
-  }
+
   #goal{
     width:100%;
     padding:18px 20px;
     border-radius:12px;
     border:2px solid var(--ink);
     background:#fff; color:var(--ink);
-    font-size:24px;
+    font-size: clamp(24px, 6vw, 32px); /* larger on mobile and desktop */
     font-weight:800;
     text-align:center;
   }
@@ -128,16 +127,23 @@
 
   /* Results */
   .results{
-    display:grid;
-    grid-template-columns:1fr;
-    gap:10px;
-    margin-top:10px;
-  }
-  @media (min-width:700px){
-    .results.three{ grid-template-columns:repeat(3,1fr) }
+    margin-top: 12px;
   }
 
-  /* When only two pills (100 events), center them as a group */
+  /* 3-pill layout (200/400/500) */
+  .results.three{
+    display:grid;
+    grid-template-columns: 1fr;
+    gap:12px;
+    justify-items:center;
+  }
+  @media (min-width:720px){
+    .results.three{
+      grid-template-columns: repeat(3, minmax(180px, 1fr));
+    }
+  }
+
+  /* 2-pill centered layout (100s) */
   .results.two{
     display:flex;
     justify-content:center;
@@ -151,6 +157,7 @@
     padding:12px;
     text-align:center;
     min-width: 180px;
+    max-width: 100%;
     background: var(--off);
   }
   .pill .tag{
@@ -158,7 +165,7 @@
   }
   .pill .num{
     font-variant-numeric: tabular-nums;
-    font-size:clamp(22px,5vw,30px);
+    font-size:clamp(22px, 5vw, 30px);
     font-weight:800;
   }
 
@@ -167,7 +174,7 @@
   #pillMiddle{ background: var(--light-yellow) }
   #pillLast{ background: var(--gold) }
 
-  /* Strategy — make sure it's visible on iPhone */
+  /* Strategy — strong and visible on iPhone */
   .strategy{
     margin-top:16px;
     color: var(--danger);
@@ -181,81 +188,82 @@
   }
 
   .help{
-    margin-top:14px;
+    margin-top:16px;
     color:var(--muted);
     font-size:14px;
     text-align:center;
   }
-
 </style>
 </head>
 <body>
-  <main class="card" role="main" aria-labelledby="title">
-    <!-- Top centered image (safe with iPhone notch) -->
-    <img class="logo" src="https://github.com/coachweaver/pace-app/blob/main/Badge%20Color%20(1).png?raw=true" alt="Team Badge" />
+  <div class="wrap">
+    <main class="card" role="main" aria-labelledby="title">
+      <!-- Top centered image (safe with iPhone notch) -->
+      <img class="logo" src="https://github.com/coachweaver/pace-app/blob/main/Badge%20Color%20(1).png?raw=true" alt="Team Badge" />
 
-    <h1 id="title">Race Pace Calculator</h1>
+      <h1 id="title">Race Pace Calculator</h1>
 
-    <!-- Event (centered, fixed width) -->
-    <div class="controls">
-      <div class="field eventWrap">
-        <label for="event">Event</label>
-        <select id="event" aria-label="Event">
-          <option>100 FR</option>
-          <option>200 FR</option>
-          <option>400/500 FR</option>
-          <option>100 BR</option>
-          <option>100 BK</option>
-          <option>100 FLY</option>
-        </select>
-      </div>
-
-      <!-- Course shows only when 400/500 FR is selected -->
-      <div class="field courseWrap" id="courseWrap" hidden>
-        <label for="course">Course</label>
-        <select id="course" aria-label="Course">
-          <option>SCM</option>
-          <option>SCY</option>
-        </select>
-      </div>
-
-      <!-- Emphasized Goal Input (centerpiece) -->
-      <div class="field goal-wrap">
-        <label for="goal">Goal time</label>
-        <input id="goal" type="text" inputmode="text"
-               placeholder="m:ss or mm:ss or ss"
-               aria-describedby="err" />
-      </div>
-    </div>
-
-    <div class="error" id="err" role="alert" aria-live="polite"></div>
-
-    <!-- Results -->
-    <section aria-live="polite" aria-atomic="true">
-      <div id="results" class="results three" hidden>
-        <div class="pill" id="pillFirst">
-          <div class="tag">First 50</div>
-          <div class="num" id="firstNum">00 s</div>
+      <!-- Controls (all centered, same width) -->
+      <div class="controls">
+        <div class="field">
+          <label for="event">Event</label>
+          <select id="event" aria-label="Event">
+            <option>100 FR</option>
+            <option>200 FR</option>
+            <option>400/500 FR</option>
+            <option>100 BR</option>
+            <option>100 BK</option>
+            <option>100 FLY</option>
+          </select>
         </div>
-        <div class="pill" id="pillMiddle">
-          <div class="tag">Middle 50s</div>
-          <div class="num" id="middleNum">00 s</div>
+
+        <!-- Course shows only when 400/500 FR is selected -->
+        <div class="field" id="courseWrap" hidden>
+          <label for="course">Course</label>
+          <select id="course" aria-label="Course">
+            <option>SCM</option>
+            <option>SCY</option>
+          </select>
         </div>
-        <div class="pill" id="pillLast">
-          <div class="tag">Final 50</div>
-          <div class="num" id="lastNum">00 s</div>
+
+        <!-- Emphasized Goal Input (centerpiece) -->
+        <div class="field goal-wrap">
+          <label for="goal">Goal time</label>
+          <input id="goal" type="text" inputmode="text"
+                 placeholder="m:ss or mm:ss or ss"
+                 aria-describedby="err" />
         </div>
       </div>
 
-      <!-- Strategy (red, bold, easy to see on iPhone) -->
-      <div id="strategy" class="strategy" hidden></div>
+      <div class="error" id="err" role="alert" aria-live="polite"></div>
 
-      <!-- Single-line description at the very bottom -->
-      <div class="help">
-        Time formats accepted: <strong>m:ss</strong>, <strong>mm:ss</strong>, or <strong>seconds only</strong>
-      </div>
-    </section>
-  </main>
+      <!-- Results -->
+      <section aria-live="polite" aria-atomic="true">
+        <div id="results" class="results three" hidden>
+          <div class="pill" id="pillFirst">
+            <div class="tag">First 50</div>
+            <div class="num" id="firstNum">00 s</div>
+          </div>
+          <div class="pill" id="pillMiddle">
+            <div class="tag">Middle 50s</div>
+            <div class="num" id="middleNum">00 s</div>
+          </div>
+          <div class="pill" id="pillLast">
+            <div class="tag">Final 50</div>
+            <div class="num" id="lastNum">00 s</div>
+          </div>
+        </div>
+
+        <!-- Strategy (red, bold) -->
+        <div id="strategy" class="strategy" hidden></div>
+
+        <!-- Single-line description at the very bottom -->
+        <div class="help">
+          Time formats accepted: <strong>m:ss</strong>, <strong>mm:ss</strong>, or <strong>seconds only</strong>
+        </div>
+      </section>
+    </main>
+  </div>
 
 <script>
   const eventSel = document.getElementById('event');
@@ -377,7 +385,8 @@
     results.hidden = false;
 
     // Strategy (strong + visible)
-    strategyBox.textContent = STRATEGIES[Math.floor(Math.random()*STRATEGIES.length)];
+    const STRAT = STRATEGIES[Math.floor(Math.random()*STRATEGIES.length)];
+    strategyBox.textContent = STRAT;
     strategyBox.hidden = false;
   }
 
@@ -394,3 +403,4 @@
 </script>
 </body>
 </html>
+```
