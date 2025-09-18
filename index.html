@@ -75,9 +75,7 @@
     margin: 8px 0 16px;
   }
 
-  .field{
-    width: var(--control-w);
-  }
+  .field{ width: var(--control-w); }
 
   .field label{
     display:block;
@@ -94,9 +92,7 @@
     gap:10px;
   }
   @media (min-width:600px){
-    .event-grid{
-      grid-template-columns: repeat(3, 1fr);
-    }
+    .event-grid{ grid-template-columns: repeat(3, 1fr); }
   }
 
   .btn{
@@ -126,13 +122,14 @@
     gap:10px;
   }
 
-  /* State cuts (expandable) */
+  /* State cuts (expandable) — centered */
   details.cuts{
     width: var(--control-w);
     margin: 4px auto 0 auto;
     border:1px solid var(--border);
     border-radius:12px;
     background: var(--off);
+    text-align:center;
   }
   details.cuts > summary{
     padding:10px 12px;
@@ -140,19 +137,38 @@
     list-style:none;
     font-weight:700;
     color:var(--ink);
-    text-align:center;
     border-radius:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+  }
+  /* dropdown icon */
+  details.cuts > summary::after{
+    content:"▾";
+    display:inline-block;
+    transition: transform .2s ease;
+  }
+  details.cuts[open] > summary::after{
+    transform: rotate(180deg);
   }
   details.cuts[open] > summary{
     border-bottom:1px solid var(--border);
     border-bottom-left-radius:0;
     border-bottom-right-radius:0;
   }
-  .cuts-content{
-    padding:12px;
+  .cuts-content{ padding:12px; }
+
+  .cuts-subtitle{
+    margin:10px auto 6px auto;
+    font-size:15px;
+    font-weight:700;
+    color:var(--ink);
   }
+
   .cuts-grid{
-    width:100%;
+    width: min(520px, 100%);
+    margin: 0 auto 12px auto;  /* centered */
     border-collapse: collapse;
   }
   .cuts-grid th, .cuts-grid td{
@@ -164,12 +180,6 @@
   .cuts-grid th{
     background:#fff;
     font-weight:700;
-  }
-  .cuts-note{
-    margin-top:6px;
-    color:var(--muted);
-    font-size:12px;
-    text-align:center;
   }
 
   /* Emphasized Goal box — centerpiece, same width as controls */
@@ -201,9 +211,7 @@
   }
 
   /* Results */
-  .results{
-    margin-top: 12px;
-  }
+  .results{ margin-top: 12px; }
 
   /* 3-pill layout (200/400/500) */
   .results.three{
@@ -213,9 +221,7 @@
     justify-items:center;
   }
   @media (min-width:720px){
-    .results.three{
-      grid-template-columns: repeat(3, minmax(180px, 1fr));
-    }
+    .results.three{ grid-template-columns: repeat(3, minmax(180px, 1fr)); }
   }
 
   /* 2-pill centered layout (100s) */
@@ -302,11 +308,12 @@
           </div>
         </div>
 
-        <!-- Expandable State Cuts -->
+        <!-- Expandable State Cuts (centered) -->
         <details class="cuts" id="cutsBox">
           <summary>2025 State Cuts</summary>
           <div class="cuts-content">
-            <table class="cuts-grid" id="cutsGrid" aria-label="State cuts table">
+            <div class="cuts-subtitle">Women</div>
+            <table class="cuts-grid" aria-label="Women state cuts">
               <thead>
                 <tr>
                   <th></th>
@@ -316,18 +323,40 @@
               </thead>
               <tbody>
                 <tr>
-                  <th>Women</th>
-                  <td id="w-scy">—</td>
-                  <td id="w-scm">—</td>
+                  <th>AUTO</th>
+                  <td id="w-scy-auto">—</td>
+                  <td id="w-scm-auto">—</td>
                 </tr>
                 <tr>
-                  <th>Men</th>
-                  <td id="m-scy">—</td>
-                  <td id="m-scm">—</td>
+                  <th>CONS</th>
+                  <td id="w-scy-cons">—</td>
+                  <td id="w-scm-cons">—</td>
                 </tr>
               </tbody>
             </table>
-            <div class="cuts-note">AUTO / CONS shown for each course</div>
+
+            <div class="cuts-subtitle">Men</div>
+            <table class="cuts-grid" aria-label="Men state cuts">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>SCY</th>
+                  <th>SCM</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th>AUTO</th>
+                  <td id="m-scy-auto">—</td>
+                  <td id="m-scm-auto">—</td>
+                </tr>
+                <tr>
+                  <th>CONS</th>
+                  <td id="m-scy-cons">—</td>
+                  <td id="m-scm-cons">—</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </details>
 
@@ -384,11 +413,20 @@
   const lastNum      = document.getElementById('lastNum');
   const strategyBox  = document.getElementById('strategy');
 
-  // State cuts cells
-  const wSCY = document.getElementById('w-scy');
-  const wSCM = document.getElementById('w-scm');
-  const mSCY = document.getElementById('m-scy');
-  const mSCM = document.getElementById('m-scm');
+  // State cuts cells (women)
+  const wCells = {
+    scyAuto: document.getElementById('w-scy-auto'),
+    scmAuto: document.getElementById('w-scm-auto'),
+    scyCons: document.getElementById('w-scy-cons'),
+    scmCons: document.getElementById('w-scm-cons')
+  };
+  // State cuts cells (men)
+  const mCells = {
+    scyAuto: document.getElementById('m-scy-auto'),
+    scmAuto: document.getElementById('m-scm-auto'),
+    scyCons: document.getElementById('m-scy-cons'),
+    scmCons: document.getElementById('m-scm-cons')
+  };
 
   // Current selections
   let currentEvent = null;
@@ -414,8 +452,8 @@
     "400/500 FR": { NByCourse: { SCM: 8, SCY: 10 }, deltas: { first: 3.0, last: 1.0 } }
   };
 
-  // 2025 SC State Cuts (excerpted & filtered; relays, 50 free, 200 IM excluded)
-  // Format: [AUTO, CONS] for SCY/SCM per gender
+  // 2025 SC State Cuts (filtered; relays, 50 free, 200 IM excluded)
+  // Stored as: [AUTO, CONS] for SCY/SCM per gender
   const CUTS = {
     "100 FR": {
       Women: { SCY: ["1:00.41","1:12.49"], SCM: ["1:07.18","1:20.61"] },
@@ -457,7 +495,6 @@
   }
 
   function toggleCourse(){
-    // Only show Course when 400/500 FR is selected
     const isLong = currentEvent === '400/500 FR';
     courseWrap.hidden = !isLong;
   }
@@ -476,16 +513,26 @@
   }
 
   function updateCuts(){
-    if (!currentEvent || !CUTS[currentEvent]){
-      wSCY.textContent = wSCM.textContent = mSCY.textContent = mSCM.textContent = "—";
-      return;
-    }
+    // Reset
+    [wCells.scyAuto,wCells.scmAuto,wCells.scyCons,wCells.scmCons,
+     mCells.scyAuto,mCells.scmAuto,mCells.scyCons,mCells.scmCons].forEach(el=>el.textContent="—");
+
+    if (!currentEvent || !CUTS[currentEvent]) return;
+
     const evCuts = CUTS[currentEvent];
-    const fmt = (arr)=> arr && arr.length ? `AUTO: ${arr[0]} / CONS: ${arr[1]}` : "—";
-    wSCY.textContent = fmt(evCuts.Women.SCY);
-    wSCM.textContent = fmt(evCuts.Women.SCM);
-    mSCY.textContent = fmt(evCuts.Men.SCY);
-    mSCM.textContent = fmt(evCuts.Men.SCM);
+    const put = (cell, val) => { cell.textContent = val || "—"; };
+
+    // Women
+    put(wCells.scyAuto, evCuts.Women.SCY?.[0]);
+    put(wCells.scyCons, evCuts.Women.SCY?.[1]);
+    put(wCells.scmAuto, evCuts.Women.SCM?.[0]);
+    put(wCells.scmCons, evCuts.Women.SCM?.[1]);
+
+    // Men
+    put(mCells.scyAuto, evCuts.Men.SCY?.[0]);
+    put(mCells.scyCons, evCuts.Men.SCY?.[1]);
+    put(mCells.scmAuto, evCuts.Men.SCM?.[0]);
+    put(mCells.scmCons, evCuts.Men.SCM?.[1]);
   }
 
   function parseTimeFlexible(str){
@@ -545,7 +592,7 @@
     if (total == null){
       results.hidden = true;
       strategyBox.hidden = true;
-      err.textContent = 'Enter m:ss or seconds (44–480).';
+      err.textContent = 'Enter m:ss or seconds';
       return;
     }
 
@@ -581,12 +628,22 @@
   }
 
   // ------ Event listeners
+  function setActiveButton(groupEl, btn){
+    groupEl.querySelectorAll('.btn').forEach(b=>{
+      b.classList.remove('btn--active');
+      b.setAttribute('aria-pressed','false');
+    });
+    if (btn){
+      btn.classList.add('btn--active');
+      btn.setAttribute('aria-pressed','true');
+    }
+  }
+
   function handleEventButton(btn){
     const ev = btn.getAttribute('data-event');
     currentEvent = ev;
     setActiveButton(eventButtons, btn);
     toggleCourse();
-    // If switching away from 400/500, clear course highlighting & selection
     if (ev !== '400/500 FR'){
       currentCourse = 'SCM';
       setActiveButton(courseButtons, null);
@@ -629,11 +686,10 @@
 
   // Goal input — live update + Enter key
   goal.addEventListener('input', calculate);
-  goal.addEventListener('keydown', e => {
-    if (e.key === 'Enter'){ e.preventDefault(); calculate(); }
-  });
+  goal.addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); calculate(); } });
 
-  // Init (no default event selected)
+  // Init
+  // (No default event selected; user taps one.)
   updateCuts();
 </script>
 </body>
